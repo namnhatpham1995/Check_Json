@@ -25,7 +25,7 @@
 	```
 	$ python app.py
 	```
- or <br>
+- or <br>
  
  	```
 	$ python app.py
