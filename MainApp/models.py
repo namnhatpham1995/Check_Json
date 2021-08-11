@@ -1,3 +1,5 @@
+# Models file contain models for the database
+# classes' name and variables in the classes must match with the tables' name and columns inside tables
 from datetime import datetime
 
 from MainApp import db

@@ -1,3 +1,5 @@
+# Main file to run the web app
+# Must import necessary components from MainApp package to run
 from MainApp import app, routes
 
 if __name__ == '__main__':

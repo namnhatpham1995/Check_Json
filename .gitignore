@@ -4,3 +4,5 @@ MainApp/__pycache__/models.cpython-38.pyc
 MainApp/__pycache__/models.cpython-38.pyc
 MainApp/__pycache__/routes.cpython-38.pyc
 *.pyc
+*.pyc
+MainApp/__pycache__/routes.cpython-38.pyc

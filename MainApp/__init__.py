@@ -1,3 +1,4 @@
+# Initial file contain setup for the MainApp package
 from flask import Flask
 from MainApp.config import Config
 from flask_sqlalchemy import SQLAlchemy
