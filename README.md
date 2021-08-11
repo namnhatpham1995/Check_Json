@@ -25,13 +25,14 @@
 	```
 	$ python app.py
 	```
- or\\
+- or <br>
+ 
  	```
 	$ python3 app.py
 	```
 ## Test
-- To test application, use Postman (https://web.postman.co/) (or any methods) to send Json request to the address  http://[computer's IP address]:5000/check_json \\
-for example:\\
+- To test application, use Postman (https://web.postman.co/) (or any methods) to send Json request to the address  http://[computer's IP address]:5000/check_json which is shown on the command line after run the app.py <br>
+for example:<br>
 	```
              {
                 "customerID":1,
@@ -79,7 +80,7 @@ The response must also contain the total number of requests for that day.
 
 ### Sample Request
 ```json
-{"customerID":1,"tagID":2,"userID":"aaaaaaaa-bbbb-cccc-1111-222222222222","remoteIP":"123.234.56.78","timestamp":1500000000}
+{"customerID":1,"customerName":"Big News Media Corp", "request_info":"ask question", "remoteIP":"123.234.56.78"}
 ```
 
 ### Suggested Tables
