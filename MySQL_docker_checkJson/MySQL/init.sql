@@ -31,9 +31,11 @@ VALUES ('A6-Indexer'),
 CREATE TABLE IF NOT EXISTS hourly_stats (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `customer_id` INT(11) UNSIGNED NOT NULL,
-  `time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  --`time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `time` TIMESTAMP NOT NULL,
   `request_count` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
   `invalid_count` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
   KEY `customer_idx` (`customer_id`),
+  UNIQUE KEY `unique_customer_time` (`customer_id`,`time`),
   CONSTRAINT `hourly_stats_customer_id` FOREIGN KEY (`customer_id`) REFERENCES `customer` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 );

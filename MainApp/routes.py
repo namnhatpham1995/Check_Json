@@ -1,3 +1,7 @@
+from datetime import datetime
+
+from sqlalchemy import cast, String
+
 from MainApp import app, db
 from flask import request, render_template
 from MainApp.models import customer, ip_blacklist, ua_blacklist, hourly_stats
@@ -65,17 +69,18 @@ def postJsonHandler():
                             # check customer request data and take the latest info
                             hourly_stats_table = hourly_stats.query \
                                 .filter_by(customer_id=customer_ID) \
-                                .order_by(hourly_stats.request_count.desc()) \
+                                .order_by(hourly_stats.id.desc()) \
                                 .first()  # take the latest request info of customer
                             # check if data found
-                            if hourly_stats_table is None:  # if no record of request, add new record to table
-                                db.session.add(hourly_stats(customer_id=customer_ID, request_count=1, invalid_count=0))
+                            # If no record of request or the last record was in different hour, create new record
+                            if hourly_stats_table is None \
+                                    or (hourly_stats_table.time.hour != datetime.now().hour):
+                                db.session.add(hourly_stats(customer_id=customer_ID, request_count=1,
+                                                            time=datetime.now(), invalid_count=0))
                                 db.session.commit()
                                 return "Saved new record with good request"
-                            else:  # if there is record of request, add new record with request_count increase
-                                db.session.add(hourly_stats(customer_id=customer_ID,
-                                                            request_count=hourly_stats_table.request_count + 1,
-                                                            invalid_count=hourly_stats_table.invalid_count))
+                            else:  # if the last record was in same hour, increase invalid_count
+                                hourly_stats_table.request_count = hourly_stats_table.request_count + 1
                                 db.session.commit()
                                 return "Saved additional record with good request"
 
@@ -87,17 +92,19 @@ def postJsonHandler():
                             # check customer request data and take the latest info
                             hourly_stats_table = hourly_stats.query \
                                 .filter_by(customer_id=customer_ID) \
-                                .order_by(hourly_stats.request_count.desc()) \
+                                .order_by(hourly_stats.id.desc()) \
                                 .first()  # take the latest request info of customer
                             # check if data found
-                            if hourly_stats_table is None:  # if no record of request, add new record to table
-                                db.session.add(hourly_stats(customer_id=customer_ID, request_count=0, invalid_count=1))
+                            # If no record of request or the last record was in different hour, create new record
+                            if hourly_stats_table is None \
+                                    or (hourly_stats_table.time.hour != datetime.now().hour):
+                                db.session.add(
+                                    hourly_stats(customer_id=customer_ID, request_count=0, time=datetime.now(),
+                                                 invalid_count=1))
                                 db.session.commit()
                                 return "Saved new record with invalid request (wrong name)"
-                            else:  # if there is record of request, add new record with invalid_count increase
-                                db.session.add(hourly_stats(customer_id=customer_ID,
-                                                            request_count=hourly_stats_table.request_count,
-                                                            invalid_count=hourly_stats_table.invalid_count + 1))
+                            else:  # if the last record was in same hour, increase invalid_count
+                                hourly_stats_table.invalid_count = hourly_stats_table.invalid_count + 1
                                 db.session.commit()
                                 return "Saved additional with invalid request (wrong name)"
                         else:  # customer inactive
@@ -114,17 +121,18 @@ def postJsonHandler():
                         # check customer request data and take the latest info
                         hourly_stats_table = hourly_stats.query \
                             .filter_by(customer_id=customer_ID) \
-                            .order_by(hourly_stats.request_count.desc()) \
+                            .order_by(hourly_stats.id.desc()) \
                             .first()  # take the latest request info of customer
                         # check if data found
-                        if hourly_stats_table is None:  # if no record of request, add new record to table
-                            db.session.add(hourly_stats(customer_id=customer_ID, request_count=0, invalid_count=1))
+                        # If no record of request or the last record was in different hour, create new record
+                        if hourly_stats_table is None \
+                                or (hourly_stats_table.time.hour != datetime.now().hour):
+                            db.session.add(hourly_stats(customer_id=customer_ID, request_count=0,
+                                                        time=datetime.now(), invalid_count=1))
                             db.session.commit()
                             return "Saved new record with invalid request"
-                        else:  # if there is record of request, add new record with invalid_count increase
-                            db.session.add(hourly_stats(customer_id=customer_ID,
-                                                        request_count=hourly_stats_table.request_count,
-                                                        invalid_count=hourly_stats_table.invalid_count + 1))
+                        else:  # if the last record was in same hour, increase invalid_count
+                            hourly_stats_table.invalid_count = hourly_stats_table.invalid_count + 1
                             db.session.commit()
                             return "Saved additional with invalid request"
                     else:  # customer inactive
