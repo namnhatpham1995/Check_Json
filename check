@@ -1,0 +1,48 @@
+from flask import Flask, request
+from flask_sqlalchemy import SQLAlchemy
+
+app = Flask(__name__)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:mysql@localhost:3306/test_DB'
+app.config['SECRET_KEY'] = "youcanguessbutitisimpossible"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+db = SQLAlchemy(app)
+
+
+class customer(db.Model):
+    id = db.Column('id', db.Integer, primary_key=True)
+    name = db.Column(db.String(200))
+    email = db.Column(db.String(200))
+
+    def __init__(self, name, email):
+        self.name = name
+        self.email = email
+
+
+@app.route('/check_json', methods=['POST'])
+def postJsonHandler():
+    if request.method == 'POST' and request.is_json:
+        content = request.get_json()
+        user = customer.query.filter_by(name=content['name']).first()
+        if user is None:
+            new_user = customer(name=content['name'],
+                                email=content['email'])
+            db.session.add(new_user)
+            db.session.commit()
+            return 'Data saved'
+        else:
+            print('Name exists')
+            return 'Nothing saved'
+        '''
+        print(request.is_json)
+        content = request.get_json()
+        print(content)
+        print(content['firstname'])
+        print(content['lastname'])
+        print(content['email'])
+        '''
+    #return 'JSON posted'
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, threaded=True)
