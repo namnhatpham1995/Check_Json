@@ -25,7 +25,7 @@
 	```
 	$ python app.py
 	```
- or\\
+ or \\
  	```
 	$ python3 app.py
 	```
