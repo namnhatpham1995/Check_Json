@@ -13,6 +13,11 @@
 	```
 	pip install -r requirements.txt
 	```
+- Run docker-compose to create MySQL database docker:
+	
+	```
+	docker-compose up
+	```
 
 ## Usage
 - To run application, move to project folder and run:
