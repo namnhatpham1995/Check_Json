@@ -26,11 +26,12 @@
 	$ python app.py
 	```
  or <br>
+ 
  	```
 	$ python3 app.py
 	```
 ## Test
-- To test application, use Postman (https://web.postman.co/) (or any methods) to send Json request to the address  http://[computer's IP address]:5000/check_json <br>
+- To test application, use Postman (https://web.postman.co/) (or any methods) to send Json request to the address  http://[computer's IP address]:5000/check_json which is shown on the command line after run the app.py <br>
 for example:<br>
 	```
              {
