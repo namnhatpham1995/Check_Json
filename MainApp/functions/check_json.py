@@ -2,7 +2,7 @@
 from datetime import datetime
 
 from flask import request
-
+from MainApp.functions.json_functions import *
 from MainApp import db
 from MainApp.functions.db_functions import *
 from MainApp.models import hourly_stats, ip_blacklist, ua_blacklist, customer
@@ -10,8 +10,6 @@ from MainApp.models import hourly_stats, ip_blacklist, ua_blacklist, customer
 
 def check_json():
     if request.method == 'POST' and request.is_json:
-        good_request = 0
-        id_available = 0
         content = request.get_json()
         request_content = list(content.keys())
         json_content = ["customerID", "customerName", "request_info", "remoteIP"]
@@ -20,20 +18,7 @@ def check_json():
             return "Malformed request, removed"
         else:  # if yes
             # check if it has enough required contents
-            for a in range(len(request_content)):
-                if request_content[a] == 'customerID':
-                    customer_ID = content['customerID']
-                    good_request += 1
-                    id_available = 1
-                elif request_content[a] == 'customerName':
-                    customer_Name = content['customerName']
-                    good_request += 1
-                elif request_content[a] == 'request_info':
-                    request_info = content['request_info']
-                    good_request += 1
-                elif request_content[a] == "remoteIP":
-                    remote_IP = content['remoteIP']
-                    good_request += 1
+            good_request, id_available, customer_Name, customer_ID, request_info, remote_IP = check_json_contents(request_content, content)
             if good_request == len(json_content):  # if JSON req has enough required contents
                 # check IP and customer name in blacklist
                 ip_bl_table = check_ip_blacklist(remote_IP)
@@ -48,7 +33,7 @@ def check_json():
                             # If no record of request or the last record was in different hour, create new record
                             if hourly_stats_table is None \
                                     or (hourly_stats_table.time.hour != datetime.now().hour):
-                                msg = hourly_stats_new(customer_ID,"good")
+                                msg = hourly_stats_new(customer_ID, "good")
                                 return msg
                             else:  # if the last record was in same hour, increase invalid_count and update timestamp
                                 msg = hourly_stats_fix_data(hourly_stats_table, "good")
@@ -65,7 +50,7 @@ def check_json():
                             # If no record of request or the last record was in different hour, create new record
                             if hourly_stats_table is None \
                                     or (hourly_stats_table.time.hour != datetime.now().hour):
-                                msg = hourly_stats_new(customer_ID,"invalid")
+                                msg = hourly_stats_new(customer_ID, "invalid")
                                 return msg
                             else:  # if the last record was in same hour, increase invalid_count and update timestamp
                                 msg = hourly_stats_fix_data(hourly_stats_table, "invalid")
@@ -87,7 +72,7 @@ def check_json():
                         # If no record of request or the last record was in different hour, create new record
                         if hourly_stats_table is None \
                                 or (hourly_stats_table.time.hour != datetime.now().hour):
-                            msg = hourly_stats_new(customer_ID,"invalid")
+                            msg = hourly_stats_new(customer_ID, "invalid")
                             return msg
                         else:  # if the last record was in same hour, increase invalid_count and update timestamp
                             msg = hourly_stats_fix_data(hourly_stats_table, "invalid")
