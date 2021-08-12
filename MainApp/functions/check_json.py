@@ -4,6 +4,7 @@ from datetime import datetime
 from flask import request
 
 from MainApp import db
+from MainApp.functions.db_functions import *
 from MainApp.models import hourly_stats, ip_blacklist, ua_blacklist, customer
 
 
@@ -35,31 +36,23 @@ def check_json():
                     good_request += 1
             if good_request == len(json_content):  # if JSON req has enough required contents
                 # check IP and customer name in blacklist
-                ip_bl_table = ip_blacklist.query.filter_by(ip=remote_IP).first()
-                ua_bl_table = ua_blacklist.query.filter_by(ua=customer_Name).first()
+                ip_bl_table = check_ip_blacklist(remote_IP)
+                ua_bl_table = check_ua_blacklist(customer_Name)
                 if ip_bl_table is None and ua_bl_table is None:  # if not found in blacklist
-                    customer_table = customer.query.filter_by(id=customer_ID).first()  # check customer info
+                    customer_table = check_customer_info(customer_ID)  # check customer info
                     if customer_table.name == customer_Name:  # check if customer name is provided right
                         # Check if customer is in active state
                         if customer_table.active == 1:  # customer active
-                            # check customer request data and take the latest info
-                            hourly_stats_table = hourly_stats.query \
-                                .filter_by(customer_id=customer_ID) \
-                                .order_by(hourly_stats.id.desc()) \
-                                .first()  # take the latest request info of customer
+                            hourly_stats_table = hourly_stats_latest(customer_ID)
                             # check if data found
                             # If no record of request or the last record was in different hour, create new record
                             if hourly_stats_table is None \
                                     or (hourly_stats_table.time.hour != datetime.now().hour):
-                                db.session.add(hourly_stats(customer_id=customer_ID, request_count=1,
-                                                            time=datetime.now(), invalid_count=0))
-                                db.session.commit()
-                                return "Saved new record with good request"
+                                msg = hourly_stats_new(customer_ID,"good")
+                                return msg
                             else:  # if the last record was in same hour, increase invalid_count and update timestamp
-                                hourly_stats_table.request_count = hourly_stats_table.request_count + 1
-                                hourly_stats_table.time = datetime.now()
-                                db.session.commit()
-                                return "Saved additional record with good request"
+                                msg = hourly_stats_fix_data(hourly_stats_table, "good")
+                                return msg
 
                         else:  # customer inactive
                             return "Customer inactive, removed"
@@ -67,24 +60,16 @@ def check_json():
                         # Check if customer is in active state
                         if customer_table.active == 1:  # customer active
                             # check customer request data and take the latest info
-                            hourly_stats_table = hourly_stats.query \
-                                .filter_by(customer_id=customer_ID) \
-                                .order_by(hourly_stats.id.desc()) \
-                                .first()  # take the latest request info of customer
+                            hourly_stats_table = hourly_stats_latest(customer_ID)
                             # check if data found
                             # If no record of request or the last record was in different hour, create new record
                             if hourly_stats_table is None \
                                     or (hourly_stats_table.time.hour != datetime.now().hour):
-                                db.session.add(
-                                    hourly_stats(customer_id=customer_ID, request_count=0, time=datetime.now(),
-                                                 invalid_count=1))
-                                db.session.commit()
-                                return "Saved new record with invalid request (wrong name)"
+                                msg = hourly_stats_new(customer_ID,"invalid")
+                                return msg
                             else:  # if the last record was in same hour, increase invalid_count and update timestamp
-                                hourly_stats_table.invalid_count = hourly_stats_table.invalid_count + 1
-                                hourly_stats_table.time = datetime.now()
-                                db.session.commit()
-                                return "Saved additional with invalid request (wrong name)"
+                                msg = hourly_stats_fix_data(hourly_stats_table, "invalid")
+                                return msg
                         else:  # customer inactive
                             return "Customer inactive, removed"
 
@@ -93,27 +78,20 @@ def check_json():
             else:  # if JSON don't have enough required contents
                 if id_available == 1:  # if there is an ID to check
                     # Check id and add invalid count
-                    customer_table = customer.query.filter_by(id=customer_ID).first()  # check customer info
+                    customer_table = check_customer_info(customer_ID)  # check customer info
                     # Check if customer is in active state
                     if customer_table.active == 1:  # customer active
                         # check customer request data and take the latest info
-                        hourly_stats_table = hourly_stats.query \
-                            .filter_by(customer_id=customer_ID) \
-                            .order_by(hourly_stats.id.desc()) \
-                            .first()  # take the latest request info of customer
+                        hourly_stats_table = hourly_stats_latest(customer_ID)
                         # check if data found
                         # If no record of request or the last record was in different hour, create new record
                         if hourly_stats_table is None \
                                 or (hourly_stats_table.time.hour != datetime.now().hour):
-                            db.session.add(hourly_stats(customer_id=customer_ID, request_count=0,
-                                                        time=datetime.now(), invalid_count=1))
-                            db.session.commit()
-                            return "Saved new record with invalid request"
+                            msg = hourly_stats_new(customer_ID,"invalid")
+                            return msg
                         else:  # if the last record was in same hour, increase invalid_count and update timestamp
-                            hourly_stats_table.invalid_count = hourly_stats_table.invalid_count + 1
-                            hourly_stats_table.time = datetime.now()
-                            db.session.commit()
-                            return "Saved additional with invalid request"
+                            msg = hourly_stats_fix_data(hourly_stats_table, "invalid")
+                            return msg
                     else:  # customer inactive
                         return "Customer inactive, removed"
                 else:
