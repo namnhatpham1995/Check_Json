@@ -48,7 +48,7 @@ def hourly_stats_fix_data(hourly_stats_table, status):
         db.session.commit()
         return "Fix table with increase request count"
     else:
-        hourly_stats_table.request_count = hourly_stats_table.request_count + 1
+        #hourly_stats_table.request_count = hourly_stats_table.request_count + 1
         hourly_stats_table.invalid_count = hourly_stats_table.invalid_count + 1
         hourly_stats_table.time = datetime.now()
         db.session.commit()
